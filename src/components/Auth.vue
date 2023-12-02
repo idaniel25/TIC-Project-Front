@@ -12,11 +12,11 @@
         <div class="form-group">
           <label for="password">Password:</label>
           <input type="password" v-model="password" id="password" required />
-          <div v-if="submitted && !validatePassword(password)" class="error-message">
+          <div v-if="submittedSignIn && !validatePassword(password)" class="error-message">
             Parola trebuie să aibă cel puțin 6 caractere.
           </div>
         </div>
-        <button type="submit" @click="submitted = true">Sign in</button>
+        <button type="submit" @click="submittedSignIn = true">Sign in</button>
       </div>
     </form>
 
@@ -38,17 +38,16 @@
             type="password"
             v-model="registerPassword"
             id="registerPassword"
-            required
-          />
-          <div v-if="submitted && !validatePassword(registerPassword)" class="error-message">
+            required />
+          <div v-if="submittedRegister && !validatePassword(registerPassword)" class="error-message">
             Parola trebuie să aibă cel puțin 6 caractere.
           </div>
         </div>
-        <button type="submit" @click="submitted = true">Log in</button>
+        <button type="submit" @click="submittedRegister = true">Log in</button>
       </div>
     </form>
+    <button @click="signOut">Sign out</button>
   </div>
-  <button @click="signOut">Sign out</button>
 </template>
 
 <script>
@@ -66,14 +65,15 @@ export default {
       password: "",
       registerEmail: "",
       registerPassword: "",
-      submitted: false,
+      submittedSignIn: false,
+      submittedRegister: false,
     };
   },
   methods: {
     async signInWithEmail() {
       if (!this.validateEmail(this.email) || !this.validatePassword(this.password)) {
         console.error("Adresa de email sau parola invalidă");
-        this.submitted = true;
+        this.submittedSignIn = true;
         return;
       }
 
@@ -98,7 +98,7 @@ export default {
     async registerWithEmail() {
       if (!this.validateEmail(this.registerEmail) || !this.validatePassword(this.registerPassword)) {
         console.error("Adresa de email sau parola invalidă");
-        this.submitted = true;
+        this.submittedRegister = true;
         return;
       }
 
