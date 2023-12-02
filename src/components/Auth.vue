@@ -12,8 +12,11 @@
         <div class="form-group">
           <label for="password">Password:</label>
           <input type="password" v-model="password" id="password" required />
+          <div v-if="submitted && !validatePassword(password)" class="error-message">
+            Parola trebuie să aibă cel puțin 6 caractere.
+          </div>
         </div>
-        <button type="submit">Sign in</button>
+        <button type="submit" @click="submitted = true">Sign in</button>
       </div>
     </form>
 
@@ -37,8 +40,11 @@
             id="registerPassword"
             required
           />
+          <div v-if="submitted && !validatePassword(registerPassword)" class="error-message">
+            Parola trebuie să aibă cel puțin 6 caractere.
+          </div>
         </div>
-        <button type="submit">Log in</button>
+        <button type="submit" @click="submitted = true">Log in</button>
       </div>
     </form>
   </div>
@@ -60,10 +66,17 @@ export default {
       password: "",
       registerEmail: "",
       registerPassword: "",
+      submitted: false,
     };
   },
   methods: {
     async signInWithEmail() {
+      if (!this.validateEmail(this.email) || !this.validatePassword(this.password)) {
+        console.error("Adresa de email sau parola invalidă");
+        this.submitted = true;
+        return;
+      }
+
       try {
         await signInWithEmailAndPassword(auth, this.email, this.password);
         console.log("Utilizator autentificat cu succes cu email și parolă!");
@@ -83,6 +96,12 @@ export default {
       }
     },
     async registerWithEmail() {
+      if (!this.validateEmail(this.registerEmail) || !this.validatePassword(this.registerPassword)) {
+        console.error("Adresa de email sau parola invalidă");
+        this.submitted = true;
+        return;
+      }
+
       try {
         await createUserWithEmailAndPassword(
           auth,
@@ -97,6 +116,13 @@ export default {
           error.message
         );
       }
+    },
+    validateEmail(email) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      return emailRegex.test(email);
+    },
+    validatePassword(password) {
+      return password.length >= 6;
     },
   },
 };
@@ -125,5 +151,11 @@ export default {
 
 .form-group input {
   box-sizing: border-box; /* Include și padding-ul și border-ul în lățimea totală */
+  width: 310px;
+}
+
+.error-message {
+  color: red;
+  margin-top: 5px;
 }
 </style>
