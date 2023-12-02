@@ -15,6 +15,9 @@
           <div v-if="submittedSignIn && !validatePassword(password)" class="error-message">
             Parola trebuie să aibă cel puțin 6 caractere.
           </div>
+          <div v-if="signInError" class="error-message">
+            {{ signInError }}
+          </div>
         </div>
         <button type="submit" @click="submittedSignIn = true">Sign in</button>
       </div>
@@ -25,29 +28,23 @@
       <div class="auth-section">
         <div class="form-group">
           <label for="registerEmail">Email:</label>
-          <input
-            type="email"
-            v-model="registerEmail"
-            id="registerEmail"
-            required
-          />
+          <input type="email" v-model="registerEmail" id="registerEmail" required />
         </div>
         <div class="form-group">
           <label for="registerPassword">Password:</label>
-          <input
-            type="password"
-            v-model="registerPassword"
-            id="registerPassword"
-            required />
+          <input type="password" v-model="registerPassword" id="registerPassword" required />
           <div v-if="submittedRegister && !validatePassword(registerPassword)" class="error-message">
             Parola trebuie să aibă cel puțin 6 caractere.
+          </div>
+          <div v-if="registerError" class="error-message">
+            {{ registerError }}
           </div>
         </div>
         <button type="submit" @click="submittedRegister = true">Log in</button>
       </div>
     </form>
-    <button @click="signOut">Sign out</button>
   </div>
+  <button @click="signOut">Sign out</button>
 </template>
 
 <script>
@@ -67,10 +64,14 @@ export default {
       registerPassword: "",
       submittedSignIn: false,
       submittedRegister: false,
+      signInError: "",
+      registerError: "",
     };
   },
   methods: {
     async signInWithEmail() {
+      this.signInError = "";
+
       if (!this.validateEmail(this.email) || !this.validatePassword(this.password)) {
         console.error("Adresa de email sau parola invalidă");
         this.submittedSignIn = true;
@@ -85,6 +86,12 @@ export default {
           "Eroare la autentificare cu email și parolă:",
           error.message
         );
+        console.log(error.code)
+        if (error.code === "auth/invalid-credential") {
+          this.signInError = "Adresa de email nu există.";
+        } else {
+          this.signInError = "Eroare la autentificare.";
+        }
       }
     },
     async signOut() {
@@ -96,6 +103,8 @@ export default {
       }
     },
     async registerWithEmail() {
+      this.registerError = "";
+
       if (!this.validateEmail(this.registerEmail) || !this.validatePassword(this.registerPassword)) {
         console.error("Adresa de email sau parola invalidă");
         this.submittedRegister = true;
@@ -115,6 +124,13 @@ export default {
           error.code,
           error.message
         );
+
+        // Verifică dacă eroarea este email-already-in-use
+        if (error.code === "auth/email-already-in-use") {
+          this.registerError = "Adresa de email este deja înregistrată.";
+        } else {
+          this.registerError = "Eroare la înregistrare.";
+        }
       }
     },
     validateEmail(email) {
