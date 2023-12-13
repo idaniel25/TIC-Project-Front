@@ -1,16 +1,19 @@
 <template>
   <div id="app">
     <Auth />
+    <Teams />
   </div>
 </template>
 
 <script>
 import Auth from './components/Auth.vue';
+import Teams from './components/Teams.vue';
 
 export default {
   name: 'App',
   components: {
-    Auth
+    Auth,
+    Teams
   }
 }
 </script>
