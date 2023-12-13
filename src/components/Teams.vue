@@ -117,7 +117,7 @@
       async deletePlayer(player) {
         // Implementează funcționalitatea de ștergere pentru jucător (DELETE către API)
         try {
-          const response = await axios.delete(`http://localhost:3000/jucatori/${player.id}`);
+          const response = await axios.delete(`http://localhost:3000/players/${player.id}`);
           console.log('Jucător șters cu succes:', response.data);
           this.loadData(); // Reîncarcă datele după ștergere
         } catch (error) {
