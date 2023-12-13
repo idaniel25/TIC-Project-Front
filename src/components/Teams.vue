@@ -98,7 +98,7 @@
       async deleteTeam(team) {
         // Implementează funcționalitatea de ștergere pentru echipă (DELETE către API)
         try {
-          const response = await axios.delete(`http://localhost:3000/echipe/${team.id}`);
+          const response = await axios.delete(`http://localhost:3000/teams/${team.id}`);
           console.log('Echipa ștearsă cu succes:', response.data);
           this.loadData(); // Reîncarcă datele după ștergere
         } catch (error) {
