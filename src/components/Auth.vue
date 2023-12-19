@@ -1,50 +1,53 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 
 <template>
-  <div class="auth-container">
-    <form @submit.prevent="signInWithEmail">
-      <h2>Sign in</h2>
-      <div class="auth-section">
-        <div class="form-group">
-          <label for="email">Email:</label>
-          <input type="email" v-model="email" id="email" required />
-        </div>
-        <div class="form-group">
-          <label for="password">Password:</label>
-          <input type="password" v-model="password" id="password" required />
-          <div v-if="submittedSignIn && !validatePassword(password)" class="error-message">
-            Parola trebuie să aibă cel puțin 6 caractere.
-          </div>
-          <div v-if="signInError" class="error-message">
+  <v-container class="auth-container">
+    <v-row>
+      <v-col>
+        <v-form @submit.prevent="signInWithEmail" v-if="!isSignedIn">
+          <v-divider class="mb-4"></v-divider>
+          <v-h2>Sign in</v-h2>
+          <v-text-field v-model="email" label="Email" required></v-text-field>
+          <v-text-field v-model="password" label="Password" type="password" required></v-text-field>
+          <v-row>
+            <v-col>
+              <v-btn type="submit" color="primary">Sign in</v-btn>
+            </v-col>
+          </v-row>
+          <v-divider class="mt-4"></v-divider>
+          <v-alert v-if="submittedSignIn && !validatePassword(password)" type="error" dense>
+            Password must be at least 6 characters.
+          </v-alert>
+          <v-alert v-if="signInError" type="error" dense>
             {{ signInError }}
-          </div>
-        </div>
-        <button type="submit" @click="submittedSignIn = true">Sign in</button>
-      </div>
-    </form>
+          </v-alert>
+        </v-form>
+      </v-col>
 
-    <form @submit.prevent="registerWithEmail">
-      <h2>Register</h2>
-      <div class="auth-section">
-        <div class="form-group">
-          <label for="registerEmail">Email:</label>
-          <input type="email" v-model="registerEmail" id="registerEmail" required />
-        </div>
-        <div class="form-group">
-          <label for="registerPassword">Password:</label>
-          <input type="password" v-model="registerPassword" id="registerPassword" required />
-          <div v-if="submittedRegister && !validatePassword(registerPassword)" class="error-message">
-            Parola trebuie să aibă cel puțin 6 caractere.
-          </div>
-          <div v-if="registerError" class="error-message">
+      <v-col>
+        <v-form @submit.prevent="registerWithEmail" v-if="!isSignedIn">
+          <v-divider class="mb-4"></v-divider>
+          <v-h2>Register</v-h2>
+          <v-text-field v-model="registerEmail" label="Email" required></v-text-field>
+          <v-text-field v-model="registerPassword" label="Password" type="password" required></v-text-field>
+          <v-row>
+            <v-col>
+              <v-btn type="submit" color="primary">Register</v-btn>
+            </v-col>
+          </v-row>
+          <v-divider class="mt-4"></v-divider>
+          <v-alert v-if="submittedRegister && !validatePassword(registerPassword)" type="error" dense>
+            Password must be at least 6 characters.
+          </v-alert>
+          <v-alert v-if="registerError" type="error" dense>
             {{ registerError }}
-          </div>
-        </div>
-        <button type="submit" @click="submittedRegister = true">Log in</button>
-      </div>
-    </form>
-  </div>
-  <button @click="signOut">Sign out</button>
+          </v-alert>
+        </v-form>
+
+        <v-btn @click="signOut" v-if="isSignedIn" color="primary">Sign out</v-btn>
+      </v-col>
+    </v-row>
+  </v-container>
 </template>
 
 <script>
@@ -66,6 +69,7 @@ export default {
       submittedRegister: false,
       signInError: "",
       registerError: "",
+      isSignedIn: false,
     };
   },
   methods: {
@@ -73,40 +77,38 @@ export default {
       this.signInError = "";
 
       if (!this.validateEmail(this.email) || !this.validatePassword(this.password)) {
-        console.error("Adresa de email sau parola invalidă");
+        console.error("Invalid email or password");
+        this.signInError = "Invalid email or password.";
         this.submittedSignIn = true;
         return;
       }
 
       try {
         await signInWithEmailAndPassword(auth, this.email, this.password);
-        console.log("Utilizator autentificat cu succes cu email și parolă!");
+        console.log("User signed in successfully with email and password!");
       } catch (error) {
-        console.error(
-          "Eroare la autentificare cu email și parolă:",
-          error.message
-        );
-        console.log(error.code)
+        console.error("Error signing in with email and password:", error.message);
         if (error.code === "auth/invalid-credential") {
-          this.signInError = "Adresa de email nu există.";
+          this.signInError = "Email address does not exist.";
         } else {
-          this.signInError = "Eroare la autentificare.";
+          this.signInError = "Error signing in.";
         }
       }
     },
     async signOut() {
       try {
         await signOut(auth);
-        console.log("Utilizator deconectat cu succes!");
+        console.log("User signed out successfully!");
       } catch (error) {
-        console.error("Eroare la deconectare:", error.message);
+        console.error("Error signing out:", error.message);
       }
     },
     async registerWithEmail() {
       this.registerError = "";
 
       if (!this.validateEmail(this.registerEmail) || !this.validatePassword(this.registerPassword)) {
-        console.error("Adresa de email sau parola invalidă");
+        console.error("Invalid email or password");
+        this.registerError = "Invalid email or password.";
         this.submittedRegister = true;
         return;
       }
@@ -117,19 +119,18 @@ export default {
           this.registerEmail,
           this.registerPassword
         );
-        console.log("Utilizator înregistrat cu succes cu email și parolă!");
+        console.log("User registered successfully with email and password!");
       } catch (error) {
         console.error(
-          "Eroare la înregistrare cu email și parolă:",
+          "Error registering with email and password:",
           error.code,
           error.message
         );
 
-        // Verifică dacă eroarea este email-already-in-use
         if (error.code === "auth/email-already-in-use") {
-          this.registerError = "Adresa de email este deja înregistrată.";
+          this.registerError = "Email address is already registered.";
         } else {
-          this.registerError = "Eroare la înregistrare.";
+          this.registerError = "Error registering.";
         }
       }
     },
@@ -141,37 +142,20 @@ export default {
       return password.length >= 6;
     },
   },
+  created() {
+    // Adaugă un observator pentru a verifica dacă utilizatorul este autentificat
+    auth.onAuthStateChanged((user) => {
+      this.isSignedIn = !!user;
+    });
+  },
 };
 </script>
 
 <style scoped>
 .auth-container {
   display: flex;
-  justify-content: center; /* Aliniază pe axa orizontală */
-  align-items: center; /* Aliniază pe axa verticală */
-}
-.auth-section {
-  margin: 0 50px; /* Adaugă un spațiu între secțiuni */
-}
-.form-group {
-  margin-bottom: 15px;
-  display: flex;
-  flex-direction: column;
-}
-
-.form-group label {
-  width: 10%; /* Face eticheta să ocupe întreaga lățime */
-  text-align: left; /* Aliniază textul la stânga */
-  margin-bottom: 5px; /* Adaugă spațiu între label și input */
-}
-
-.form-group input {
-  box-sizing: border-box; /* Include și padding-ul și border-ul în lățimea totală */
-  width: 310px;
-}
-
-.error-message {
-  color: red;
-  margin-top: 5px;
+  justify-content: center;
+  align-items: center;
+  width: 900px;
 }
 </style>
