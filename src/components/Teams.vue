@@ -4,7 +4,7 @@
   <v-container>
     <v-row>
       <v-col>
-        <v-form @submit.prevent="addTeam">
+        <v-form @submit.prevent="addTeam" class="add-team">
           <v-h3>Adaugă echipă</v-h3>
           <v-text-field v-model="newTeamName" label="Nume echipă" required></v-text-field>
           <v-btn type="submit">Adaugă echipă</v-btn>
@@ -46,7 +46,7 @@
     </v-row>
 
     <v-h2>Echipe și Jucători</v-h2>
-
+    
     <v-row>
       <v-col v-for="team in teams" :key="team.id">
         <v-card>
@@ -185,4 +185,10 @@ export default {
 };
 </script>
 
-  
+<style scoped>
+  .add-team{
+    width: 300px;
+    margin: auto;
+    margin-bottom: 20px;
+  }
+</style>

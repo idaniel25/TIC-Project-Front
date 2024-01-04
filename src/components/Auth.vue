@@ -1,53 +1,167 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 
 <template>
-  <v-container class="auth-container">
-    <v-row>
-      <v-col>
-        <v-form @submit.prevent="signInWithEmail" v-if="!isSignedIn">
-          <v-divider class="mb-4"></v-divider>
-          <v-h2>Sign in</v-h2>
-          <v-text-field v-model="email" label="Email" required></v-text-field>
-          <v-text-field v-model="password" label="Password" type="password" required></v-text-field>
-          <v-row>
-            <v-col>
-              <v-btn type="submit" color="primary">Sign in</v-btn>
-            </v-col>
-          </v-row>
-          <v-divider class="mt-4"></v-divider>
-          <v-alert v-if="submittedSignIn && !validatePassword(password)" type="error" dense>
-            Password must be at least 6 characters.
-          </v-alert>
-          <v-alert v-if="signInError" type="error" dense>
-            {{ signInError }}
-          </v-alert>
-        </v-form>
-      </v-col>
+  <v-container v-if="!isSignedIn">
+    <v-row justify="center">
+      <v-col cols="12" sm="10">
+        <v-card class="elevation-6 mt-10">
+          <v-window v-model="step">
+            <v-window-item :value="1">
+              <v-row>
+                <v-col cols="12" md="6">
+                  <v-form
+                    ref="signInForm"
+                    @submit.prevent="signInWithEmail"
+                  >
+                    <v-card-text class="mt-8">
+                      <h4 class="text-h4 text-green">
+                        Login in to Your Account
+                      </h4>
+                      <v-row justify="center">
+                        <v-col cols="12" sm="8">
+                          <v-text-field
+                            v-model="email"
+                            label="Email"
+                            outlined
+                            dense
+                            color="green"
+                            autocomplete="false"
+                            class="mt-16"
+                            required
+                            :rules="signInRules.email"
+                          />
+                          <v-text-field
+                            v-model="password"
+                            label="Password"
+                            outlined
+                            dense
+                            color="green"
+                            autocomplete="false"
+                            type="password"
+                            required
+                            :rules="signInRules.password"
+                          />
+                          <v-row>
+                            <v-col cols="12" sm="7">
+                              <v-checkbox
+                                label="Remember Me"
+                                class="mt-n1"
+                                color="green"
+                              >
+                              </v-checkbox>
+                            </v-col>
+                            <v-col cols="12" sm="5">
+                              <span class="caption text-green"
+                                >Forgot password</span
+                              >
+                            </v-col>
+                          </v-row>
+                          <v-btn color="green" type="submit" dark block tile
+                            >Log in</v-btn
+                          >
+                        </v-col>
+                      </v-row>
+                    </v-card-text>
+                  </v-form>
+                </v-col>
+                <v-col cols="12" md="6" class="bg-green rounded-bl-xl">
+                  <div style="text-align: center; padding: 200px 0">
+                    <v-card-text class="text-h5">
+                      <h3>Don't Have an Account Yet?</h3>
+                    </v-card-text>
+                    <div>
+                      <v-btn tile outlined dark @click="step++">SIGN UP</v-btn>
+                    </div>
+                  </div>
+                </v-col>
+              </v-row>
+            </v-window-item>
+            <v-window-item :value="2">
+              <v-row>
+                <v-col cols="12" md="6" class="bg-green rounded-br-xl">
+                  <div style="text-align: center; padding: 180px 0">
+                    <v-card-text class="text-white text-h5 pt-16">
+                      <h3>Already Signed up?</h3>
+                    </v-card-text>
+                    <div class="pt-6">
+                      <v-btn tile outlined dark @click="step--">Log in</v-btn>
+                    </div>
+                  </div>
+                </v-col>
 
-      <v-col>
-        <v-form @submit.prevent="registerWithEmail" v-if="!isSignedIn">
-          <v-divider class="mb-4"></v-divider>
-          <v-h2>Register</v-h2>
-          <v-text-field v-model="registerEmail" label="Email" required></v-text-field>
-          <v-text-field v-model="registerPassword" label="Password" type="password" required></v-text-field>
-          <v-row>
-            <v-col>
-              <v-btn type="submit" color="primary">Register</v-btn>
-            </v-col>
-          </v-row>
-          <v-divider class="mt-4"></v-divider>
-          <v-alert v-if="submittedRegister && !validatePassword(registerPassword)" type="error" dense>
-            Password must be at least 6 characters.
-          </v-alert>
-          <v-alert v-if="registerError" type="error" dense>
-            {{ registerError }}
-          </v-alert>
-        </v-form>
+                <v-col cols="12" md="6">
+                  <v-form
+                    ref="registerForm"
+                    @submit.prevent="registerWithEmail"
+                  >
+                    <v-card-text class="mt-12 text-h6">
+                      <h4 class="text-center text-green">
+                        Sign Up for an Account
+                      </h4>
+                      <v-row justify="center">
+                        <v-col cols="12" sm="8">
+                          <v-text-field
+                            v-model="registerName"
+                            label="Name"
+                            outlined
+                            dense
+                            color="green"
+                            autocomplete="false"
+                            class="mt-4"
+                            :rules="registerRules.registerName"
+                          />
 
-        <v-btn @click="signOut" v-if="isSignedIn" color="primary">Sign out</v-btn>
+                          <v-text-field
+                            v-model="registerEmail"
+                            label="Email"
+                            outlined
+                            dense
+                            color="green"
+                            autocomplete="false"
+                            :rules="registerRules.registerEmail"
+                          />
+                          <v-text-field
+                            v-model="registerPassword"
+                            label="Password"
+                            outlined
+                            dense
+                            color="green"
+                            autocomplete="false"
+                            type="password"
+                            :rules="registerRules.registerPassword"
+                          />
+                          <v-row>
+                            <v-col cols="12" sm="8">
+                              <v-checkbox
+                                label="I Accept Terms and Conditions"
+                                class="mt-n1"
+                                color="green"
+                              >
+                              </v-checkbox>
+                            </v-col>
+                          </v-row>
+                          <v-btn
+                            color="green"
+                            dark
+                            block
+                            tile
+                            class="mb-11"
+                            @click="registerWithEmail"
+                            >Sign up</v-btn
+                          >
+                        </v-col>
+                      </v-row>
+                    </v-card-text>
+                  </v-form>
+                </v-col>
+              </v-row>
+            </v-window-item>
+          </v-window>
+        </v-card>
       </v-col>
     </v-row>
   </v-container>
+  <v-btn @click="signOut" v-if="isSignedIn" color="primary">Sign out</v-btn>
 </template>
 
 <script>
@@ -55,43 +169,71 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut,
+  updateProfile,
 } from "firebase/auth";
 import { auth } from "../../firebaseConfig";
 
 export default {
   data() {
     return {
+      step: 1,
       email: "",
       password: "",
+      registerName: "",
       registerEmail: "",
       registerPassword: "",
-      submittedSignIn: false,
-      submittedRegister: false,
-      signInError: "",
-      registerError: "",
       isSignedIn: false,
+      signInRules: {
+        email: [
+          (v) => !!v || "Email is required",
+          (v) => this.validateEmail(v) || "Invalid email address",
+        ],
+        password: [
+          (v) => !!v || "Password is required",
+          (v) =>
+            this.validatePassword(v) ||
+            "Password must be at least 6 characters",
+        ],
+      },
+      registerRules: {
+        registerName: [
+          (v) => !!v || "Name is required",
+          (v) =>
+            this.validateName(v) ||
+            "Name must be at least 3 characters and contains only letters",
+        ],
+        registerEmail: [
+          (v) => !!v || "Email is required",
+          (v) => this.validateEmail(v) || "Invalid email address",
+        ],
+        registerPassword: [
+          (v) => !!v || "Password is required",
+          (v) =>
+            this.validatePassword(v) ||
+            "Password must be at least 6 characters",
+        ],
+      },
     };
   },
   methods: {
     async signInWithEmail() {
-      this.signInError = "";
-
-      if (!this.validateEmail(this.email) || !this.validatePassword(this.password)) {
-        console.error("Invalid email or password");
-        this.signInError = "Invalid email or password.";
-        this.submittedSignIn = true;
-        return;
-      }
-
+      // Resetează regulile la începutul fiecărei încercări de login
+      this.$refs.signInForm.resetValidation();
       try {
         await signInWithEmailAndPassword(auth, this.email, this.password);
         console.log("User signed in successfully with email and password!");
       } catch (error) {
-        console.error("Error signing in with email and password:", error.message);
+        console.log(error);
+        console.error(
+          "Error signing in with email and password:",
+          error.message
+        );
+
+        // Verificăm dacă eroarea este specifică lipsei de existență a utilizatorului
         if (error.code === "auth/invalid-credential") {
-          this.signInError = "Email address does not exist.";
-        } else {
-          this.signInError = "Error signing in.";
+          this.signInRules.password.push("Invalid email or password.");
+          this.signInRules.email.push("Invalid email or password.");
+          this.$refs.signInForm.validate();
         }
       }
     },
@@ -104,21 +246,21 @@ export default {
       }
     },
     async registerWithEmail() {
-      this.registerError = "";
-
-      if (!this.validateEmail(this.registerEmail) || !this.validatePassword(this.registerPassword)) {
-        console.error("Invalid email or password");
-        this.registerError = "Invalid email or password.";
-        this.submittedRegister = true;
-        return;
-      }
-
+      this.$refs.registerForm.resetValidation();
       try {
         await createUserWithEmailAndPassword(
           auth,
           this.registerEmail,
           this.registerPassword
         );
+
+        const user = auth.currentUser;
+
+        // Actualizează profilul utilizatorului cu numele introdus
+        await updateProfile(user, {
+          displayName: this.registerName,
+        });
+
         console.log("User registered successfully with email and password!");
       } catch (error) {
         console.error(
@@ -128,9 +270,12 @@ export default {
         );
 
         if (error.code === "auth/email-already-in-use") {
-          this.registerError = "Email address is already registered.";
-        } else {
-          this.registerError = "Error registering.";
+          // Adaugă mesajul de eroare la regulile pentru adresa de email
+          this.registerRules.registerEmail.push(
+            "Email address is already registered."
+          );
+          // Validează formularul
+          this.$refs.registerForm.validate();
         }
       }
     },
@@ -140,6 +285,10 @@ export default {
     },
     validatePassword(password) {
       return password.length >= 6;
+    },
+    validateName(registerName) {
+      const nameRegex = /^[a-zA-Z]{3,}$/;
+      return nameRegex.test(registerName);
     },
   },
   created() {
@@ -152,10 +301,10 @@ export default {
 </script>
 
 <style scoped>
-.auth-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 900px;
+.rounded-bl-xl {
+  border-bottom-left-radius: 300px !important;
+}
+.rounded-br-xl {
+  border-top-right-radius: 300px !important;
 }
 </style>
