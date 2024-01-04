@@ -4,19 +4,97 @@
   <v-container>
     <v-row>
       <v-col>
-        <v-form @submit.prevent="addTeam" class="add-team">
+        <v-form @submit.prevent="addTeam">
           <v-h3>Adaugă echipă</v-h3>
-          <v-text-field v-model="newTeamName" label="Nume echipă" required></v-text-field>
-          <v-btn type="submit">Adaugă echipă</v-btn>
+          <v-row justify="center" class="w-50 mx-auto my-2">
+            <v-col>
+              <v-text-field v-model="newTeamName" label="Nume echipă" required></v-text-field>
+            </v-col>
+            <v-col>
+              <v-btn type="submit" color="green" icon="mdi-plus"></v-btn>
+            </v-col>
+          </v-row>
         </v-form>
       </v-col>
 
-      <v-col v-if="isAddPlayerFormVisible">
-        <v-form @submit.prevent="saveAddedPlayer">
-          <v-h4>Adaugă jucător</v-h4>
-          <v-text-field v-model="newPlayerName" label="Nume jucător" required></v-text-field>
-          <v-btn type="submit">Adaugă jucător</v-btn>
+      <v-col>
+        <v-form @submit.prevent="addPlayer" class="add-player">
+          <v-h3>Adaugă jucător</v-h3>
+          <v-row  justify="center" class="w-50 mx-auto my-2">
+            <v-col>
+              <v-text-field v-model="newPlayerName" label="Nume jucător" required></v-text-field>
+            </v-col>
+            <v-col>
+              <v-btn type="submit" color="green" icon="mdi-plus"></v-btn>
+            </v-col>
+          </v-row>
         </v-form>
+      </v-col>
+    </v-row>
+
+    <v-row class="w-75 mx-auto">
+      <v-col>
+        <v-card
+          flat
+          title="Players List"
+        >
+          <template v-slot:text>
+            <v-text-field
+              v-model="search"
+              label="Search"
+              prepend-inner-icon="mdi-magnify"
+              single-line
+              variant="outlined"
+              hide-details
+            ></v-text-field>
+          </template>
+          <v-data-table
+            :headers="headers"
+            :items="players"
+            :search="search"
+            :items-per-page="5" 
+            :hide-default-footer="true" 
+          >
+            <template v-slot:item="{ item }">
+              <tr>
+                <td class="text-left">
+                  <!-- Afișați numele jucătorului și echipa normal -->
+                  <template v-if="!isEditingPlayer || editedPlayer.id !== item.id">
+                    {{ item.name }}
+                  </template>
+                  <!-- Afișați câmpul de text pentru nume când se editează -->
+                  <template v-else>
+                    <v-text-field v-model="editedPlayer.name" label="Nume jucător"></v-text-field>
+                  </template>
+                </td>
+                <td class="text-left">
+                  <!-- Afișați echipa normal -->
+                  <template v-if="!isEditingPlayer || editedPlayer.id !== item.id">
+                    {{ getTeamName(item.team_id) || '-' }}
+                  </template>
+                  <!-- Afișați spinner-ul pentru echipă când se editează -->
+                  <template v-else>
+                    <v-select
+                      v-model="editedPlayer.team_id"
+                      :items="teams.map(team => ({ title: team.name, value: team.id }))"
+                      label="Selectează echipa"
+                    ></v-select>
+                  </template>
+                </td>
+                <td class="text-left">
+                  <v-btn @click="editPlayer(item)" icon >
+                    <v-icon>mdi-pencil</v-icon>
+                  </v-btn>
+                </td>
+                <td class="text-left"> 
+                  <v-btn @click="saveEditedPlayer(item)" icon>
+                    <v-icon>mdi-content-save</v-icon>
+                  </v-btn>
+                </td>
+              </tr>
+            </template>
+          </v-data-table>
+        </v-card>
       </v-col>
     </v-row>
 
@@ -26,21 +104,6 @@
           <v-h3>Editare echipă</v-h3>
           <v-text-field v-model="editedTeam.name" label="Nume echipă"></v-text-field>
           <v-btn @click="saveEditedTeam">Salvează</v-btn>
-        </v-form>
-      </v-col>
-
-      <v-col v-if="editedPlayer.id !== ''">
-        <v-form>
-          <v-h3>Editare jucător</v-h3>
-          <v-text-field v-model="editedPlayer.name" label="Nume jucător"></v-text-field>
-
-          <v-select
-            v-model="editedPlayer.team_id"
-            :items="teams.map(team => ({ title: team.name, value: team.id }))"
-            label="Selectează echipa"
-          ></v-select>
-
-          <v-btn @click="saveEditedPlayer">Salvează</v-btn>
         </v-form>
       </v-col>
     </v-row>
@@ -62,7 +125,6 @@
               <v-list-item-group v-if="team.players">
                 <v-list-item v-for="player in team.players" :key="player.id">
                     {{ player.name }}
-                    <v-btn @click="editPlayer(player)">Edit</v-btn>
                     <v-btn @click="deletePlayer(player)">Delete</v-btn>
                 </v-list-item>
               </v-list-item-group>
@@ -80,7 +142,16 @@ import axios from 'axios';
 export default {
   data() {
     return {
+      search: '',
       teams: [],
+      players: [],
+      headers: [
+        { align: 'start', key: 'name', title: 'Player name'},
+        { align: 'start', key: 'team_id', title: 'Team'},
+        { align: 'start', title: 'Edit', sortable: false },
+        { align: 'start', title: 'Save', sortable: false },
+      ],
+      isEditingPlayer: false,
       editedTeam: { id: '', name: '' },
       editedPlayer: { id: '', name: '', team_id: '' },
       isAddPlayerFormVisible: false,
@@ -101,6 +172,8 @@ export default {
         const teams = teamsResponse.data;
         const players = playersResponse.data;
 
+        this.players = players
+
         this.teams = teams.map((team) => {
           team.players = players.filter((player) => player.team_id === team.id);
           return team;
@@ -109,6 +182,10 @@ export default {
         console.error('Eroare la încărcarea datelor:', error.message);
       }
     },
+    getTeamName(teamId) {
+      const team = this.teams.find((t) => t.id === teamId);
+      return team ? team.name : '';
+    },
     async addTeam() {
       try {
         await axios.post('http://localhost:3000/teams', { name: this.newTeamName });
@@ -116,22 +193,6 @@ export default {
         this.loadData();
       } catch (error) {
         console.error('Eroare la adăugarea echipei:', error);
-      }
-    },
-    showAddPlayerForm(teamId) {
-      this.isAddPlayerFormVisible = true;
-      this.selectedTeamId = teamId;
-    },
-    async saveAddedPlayer() {
-      try {
-        const selectedTeam = this.teams.find((t) => t.id === this.selectedTeamId);
-
-        await axios.post('http://localhost:3000/players', { name: this.newPlayerName, team_id: selectedTeam.id });
-        this.newPlayerName = '';
-        this.isAddPlayerFormVisible = false;
-        this.loadData();
-      } catch (error) {
-        console.error('Eroare la adăugarea jucătorului:', error);
       }
     },
     async editTeam(team) {
@@ -156,22 +217,36 @@ export default {
         console.error('Eroare la ștergerea echipei:', error.message);
       }
     },
-    async editPlayer(player) {
-      this.editedPlayer = { id: player.id, name: player.name, team_id: player.team_id };
-    },
-    async saveEditedPlayer() {
+    async addPlayer() {
       try {
-        const response = await axios.put(`http://localhost:3000/players/${this.editedPlayer.id}`, {
-          name: this.editedPlayer.name,
-          team_id: this.editedPlayer.team_id,
-        });
+        await axios.post('http://localhost:3000/players', { name: this.newPlayerName });
+        this.newPlayerName = '';
         this.loadData();
+      } catch (error) {
+        console.error('Eroare la adăugarea jucatorului:', error);
+      }
+    },
+    async editPlayer(player) {
+      this.editedPlayer = {
+        id: player.id,
+        name: player.name,
+        team_id: player.team_id || '',
+      };
+
+      this.isEditingPlayer = true;
+    },
+    async saveEditedPlayer(item) {
+      try {
+        const response = await axios.put(`http://localhost:3000/players/${item.id}`, this.editedPlayer);
+        this.loadData();
+        this.isEditingPlayer = false;
         this.editedPlayer = { id: '', name: '', team_id: '' };
         console.log('Jucător actualizat cu succes:', response.data);
       } catch (error) {
         console.error('Eroare la actualizarea jucătorului:', error.message);
       }
     },
+
     async deletePlayer(player) {
       try {
         const response = await axios.delete(`http://localhost:3000/players/${player.id}`);
@@ -186,9 +261,5 @@ export default {
 </script>
 
 <style scoped>
-  .add-team{
-    width: 300px;
-    margin: auto;
-    margin-bottom: 20px;
-  }
+ 
 </style>
