@@ -87,7 +87,7 @@
                   </v-btn>
                 </td>
                 <td class="text-left"> 
-                  <v-btn @click="saveEditedPlayer(item)" icon>
+                  <v-btn @click="saveEditedPlayer(item)" :disabled="!isEditingPlayer || editedPlayer.id !== item.id" icon>
                     <v-icon>mdi-content-save</v-icon>
                   </v-btn>
                 </td>
@@ -103,7 +103,7 @@
       </v-col>
     </v-row>
 
-    <v-row>
+    <!-- <v-row>
       <v-col v-if="editedTeam.id !== ''">
         <v-form>
           <v-h3>Editare echipă</v-h3>
@@ -111,7 +111,7 @@
           <v-btn @click="saveEditedTeam">Salvează</v-btn>
         </v-form>
       </v-col>
-    </v-row>
+    </v-row> -->
 
     <v-h2>Echipe și Jucători</v-h2>
     
@@ -119,11 +119,16 @@
       <v-col v-for="team in teams" :key="team.id">
         <v-card class="w-75 mx-auto">
           <v-card-title>
-            {{ team.name }}
+            <template v-if="!isEditingTeam || editedTeam.id !== team.id">
+              {{ team.name }}
+            </template>
+            <template v-else>
+              <v-text-field v-model="editedTeam.name" label="Team name"></v-text-field>
+            </template>
             <v-btn @click="editTeam(team)" icon class="ml-2" >
               <v-icon>mdi-pencil</v-icon>
             </v-btn>
-            <v-btn @click="saveEditedTeam" icon class="ml-2">
+            <v-btn @click="saveEditedTeam" icon class="ml-2" :disabled="!isEditingTeam || editedTeam.id !== team.id">
               <v-icon>mdi-content-save</v-icon>
             </v-btn>
             <v-btn @click="deleteTeam(team)" icon class="ml-2">
@@ -165,6 +170,7 @@ export default {
         { align: 'start', title: 'Save', sortable: false },
         { align: 'start', title: 'Delete', sortable: false },
       ],
+      isEditingTeam: false,
       isEditingPlayer: false,
       editedTeam: { id: '', name: '' },
       editedPlayer: { id: '', name: '', team_id: '' },
@@ -211,6 +217,7 @@ export default {
     },
     async editTeam(team) {
       this.editedTeam = { id: team.id, name: team.name };
+      this.isEditingTeam = true;
     },
     async saveEditedTeam() {
       try {
