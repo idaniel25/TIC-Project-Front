@@ -117,20 +117,28 @@
     
     <v-row>
       <v-col v-for="team in teams" :key="team.id">
-        <v-card>
+        <v-card class="w-75 mx-auto">
           <v-card-title>
             {{ team.name }}
-            <v-btn @click="editTeam(team)">Edit</v-btn>
-            <v-btn @click="deleteTeam(team)">Delete</v-btn>
-            <v-btn @click="showAddPlayerForm(team.id)">Add a player</v-btn>
+            <v-btn @click="editTeam(team)" icon class="ml-2" >
+              <v-icon>mdi-pencil</v-icon>
+            </v-btn>
+            <v-btn @click="saveEditedTeam" icon class="ml-2">
+              <v-icon>mdi-content-save</v-icon>
+            </v-btn>
+            <v-btn @click="deleteTeam(team)" icon class="ml-2">
+              <v-icon>mdi-delete</v-icon>
+            </v-btn>
           </v-card-title>
 
           <v-card-text>
             <v-list>
               <v-list-item-group v-if="team.players">
-                <v-list-item v-for="player in team.players" :key="player.id">
+                <v-list-item v-for="player in team.players" :key="player.id" class="my-1">
                     {{ player.name }}
-                    <v-btn @click="deletePlayer(player)">Delete</v-btn>
+                    <v-btn @click="deletePlayerFromTeam(player)" icon class="ml-2" size="small"> <!--alta functie-->
+                      <v-icon>mdi-delete</v-icon>
+                    </v-btn>
                 </v-list-item>
               </v-list-item-group>
             </v-list>
@@ -252,10 +260,18 @@ export default {
         console.error('Eroare la actualizarea jucătorului:', error.message);
       }
     },
-
     async deletePlayer(player) {
       try {
         const response = await axios.delete(`http://localhost:3000/players/${player.id}`);
+        console.log('Jucător șters cu succes:', response.data);
+        this.loadData();
+      } catch (error) {
+        console.error('Eroare la ștergerea jucătorului:', error.message);
+      }
+    },
+    async deletePlayerFromTeam(player) {
+      try {
+        const response = await axios.delete(`http://localhost:3000/activePlayers/${player.id}`);
         console.log('Jucător șters cu succes:', response.data);
         this.loadData();
       } catch (error) {
