@@ -91,6 +91,11 @@
                     <v-icon>mdi-content-save</v-icon>
                   </v-btn>
                 </td>
+                <td class="text-left"> 
+                  <v-btn @click="deletePlayer(item)" icon>
+                    <v-icon>mdi-delete</v-icon>
+                  </v-btn>
+                </td>
               </tr>
             </template>
           </v-data-table>
@@ -150,6 +155,7 @@ export default {
         { align: 'start', key: 'team_id', title: 'Team'},
         { align: 'start', title: 'Edit', sortable: false },
         { align: 'start', title: 'Save', sortable: false },
+        { align: 'start', title: 'Delete', sortable: false },
       ],
       isEditingPlayer: false,
       editedTeam: { id: '', name: '' },
