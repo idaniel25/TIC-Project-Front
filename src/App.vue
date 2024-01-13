@@ -1,7 +1,7 @@
 <template>
   <div id="app">
-    <Auth />
-    <Teams />
+    <Auth @user-signed-in="loadData" @user-signed-out="clearData"/>
+    <Teams ref="teamsComponent"/>
   </div>
 </template>
 
@@ -14,7 +14,18 @@ export default {
   components: {
     Auth,
     Teams
-  }
+  },
+  methods: {
+    async loadData() {
+      // Apelează metoda loadData a componente teams.vue
+      await this.$refs.teamsComponent.loadData();
+    },
+    clearData() {
+      // Resetează datele echipei și jucătorilor atunci când utilizatorul se deconectează
+      this.$refs.teamsComponent.teams = [];
+      this.$refs.teamsComponent.players = [];
+    },
+  },
 }
 </script>
 

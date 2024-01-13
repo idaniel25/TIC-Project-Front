@@ -222,6 +222,8 @@ export default {
       try {
         await signInWithEmailAndPassword(auth, this.email, this.password);
         console.log("User signed in successfully with email and password!");
+        // Emite evenimentul personalizat către părintele componentei
+        this.$emit("user-signed-in");
       } catch (error) {
         console.log(error);
         console.error(
@@ -241,6 +243,8 @@ export default {
       try {
         await signOut(auth);
         console.log("User signed out successfully!");
+        // Emite evenimentul personalizat către părintele componentei
+        this.$emit("user-signed-out");
       } catch (error) {
         console.error("Error signing out:", error.message);
       }
