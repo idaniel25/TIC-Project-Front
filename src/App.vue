@@ -2,12 +2,12 @@
   <v-app>
     <v-container>
       <!-- Alte conținuturi ale tale -->
-      <Auth @user-signed-in="loadData" @user-signed-out="clearData"/>
-      <v-row>
-        <v-col>
+      <Auth @user-signed-in="loadData" @user-signed-out="clearData" @user-registered="loadData"/>
+      <v-row class="add-team">
+        <v-col >
           <TeamForm @team-added="loadData" />
         </v-col>
-        <v-col>
+        <v-col  >
           <PlayerForm @player-added="loadData" />
         </v-col>
       </v-row>
@@ -29,6 +29,7 @@ import PlayersTable from './components/PlayersTable.vue'
 import TeamsList from './components/TeamsList.vue'
 import { auth } from "../firebaseConfig";
 import axios from "axios";
+import "@/assets/style.css";
 
 export default {
   name: 'App',
@@ -43,12 +44,15 @@ export default {
     return {
       teams: [],
       players: [],
-    }
+    } 
   },
   methods: {
     async loadData() {
+      if (!auth.currentUser) {
+        console.error("Utilizatorul nu este autentificat.");
+        return;
+      }
       try {
-        console.log(auth.currentUser.uid);
         const teamsResponse = await axios.get(`http://localhost:3000/teams`, {
           params: { user_id: auth.currentUser.uid },
         });
@@ -60,11 +64,12 @@ export default {
         const teams = teamsResponse.data;
         const players = playersResponse.data;
 
-        this.players.splice(0, this.players.length, ...players);
+        this.players = players.slice();
 
         this.teams = teams.map((team) => {
-          team.players = players.filter((player) => player.team_id === team.id);
-          return team;
+          const teamCopy = { ...team };
+          teamCopy.players = players.filter((player) => player.team_id === team.id);
+          return teamCopy;
         });
       } catch (error) {
         console.error("Eroare la încărcarea datelor:", error.message);

@@ -1,0 +1,51 @@
+/* Stiluri globale */
+
+/* Stiluri pentru ecrane mici (mobile) */
+@media screen and (max-width: 600px) {
+  /* Adaugă aici stilurile pentru ecrane mici */
+  v-h2 {
+    font-size: 1.5rem; /* Ajustează dimensiunea fontului pentru titluri pe dispozitive mici */
+  }
+
+  v-row {
+    flex-direction: column; /* Schimbă direcția de afișare a rândurilor pentru dispozitive mici */
+  }
+
+  v-col {
+    width: 100%; /* Faceți ca coloanele să fie pe întreaga lățime a ecranului pe dispozitive mici */
+  }
+
+  /* Adaugă alte stiluri pentru dispozitive mici */
+}
+
+/* Stiluri pentru ecrane medii (tabletă) */
+@media screen and (min-width: 601px) and (max-width: 1024px) {
+  /* Adaugă aici stilurile pentru ecrane medii */
+
+  v-row {
+    flex-direction: row; /* Redefinește direcția de afișare a rândurilor pentru dispozitive medii */
+  }
+
+  v-col {
+    width: 48%; /* Distribuie coloanele pe lățime egală pe dispozitive medii */
+    margin: 1%; /* Adaugă spațiu între coloane */
+  }
+
+  /* Adaugă alte stiluri pentru dispozitive medii */
+}
+
+/* Stiluri pentru ecrane mari (desktop) */
+@media screen and (min-width: 1025px) {
+  /* Adaugă aici stilurile pentru ecrane mari */
+
+  v-row {
+    flex-direction: row; /* Menține direcția de afișare a rândurilor pentru dispozitive mari */
+  }
+
+  v-col {
+    width: 30%; /* Redefinește lățimea coloanelor pentru dispozitive mari */
+    margin: 1%; /* Menține spațiul între coloane */
+  }
+
+  /* Adaugă alte stiluri pentru dispozitive mari */
+}

@@ -172,6 +172,7 @@ import {
   updateProfile,
 } from "firebase/auth";
 import { auth } from "../../firebaseConfig";
+import axios from "axios";
 
 export default {
   data() {
@@ -264,7 +265,8 @@ export default {
         await updateProfile(user, {
           displayName: this.registerName,
         });
-
+        await axios.post('http://localhost:3000/generate-data', { user_id: auth.currentUser.uid });
+        this.$emit("user-registered");
         console.log("User registered successfully with email and password!");
       } catch (error) {
         console.error(
