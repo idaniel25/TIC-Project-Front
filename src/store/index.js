@@ -1,6 +1,7 @@
 import { createStore } from "vuex";
 import axios from "axios";
 import { auth } from "../../firebaseConfig";
+import getAxiosConfig from '../services/firebaseService';
 
 const store = createStore({
   state: {
@@ -75,10 +76,11 @@ const store = createStore({
     },
     async createTeam(context, { name, user_id }) {
       try {
+        const config = await getAxiosConfig();
         const response = await axios.post("http://localhost:3000/teams", {
           name,
           user_id,
-        });
+        }, config);
 
         const createdTeam = response.data;
 
@@ -114,10 +116,11 @@ const store = createStore({
     },
     async createPlayer(context, { name, user_id }) {
       try {
+        const config = await getAxiosConfig();
         const response = await axios.post("http://localhost:3000/players", {
           name,
           user_id,
-        });
+        }, config);
         const createdPlayer = response.data;
 
         console.log(createdPlayer.id);
@@ -132,10 +135,11 @@ const store = createStore({
         commit("SET_EDITED_PLAYER", player);
         console.log("jucator trimis: ",player);
         console.log(state.teams)
+        const config = await getAxiosConfig();
         // Apelul Axios pentru actualizarea jucătorului
         await axios.put(
           `http://localhost:3000/players/${player.id}`,
-          player
+          player, config
         );
 
         // Actualizăm doar jucătorul specific în array-ul de jucători
@@ -153,8 +157,9 @@ const store = createStore({
     },
     async deletePlayer({ commit }, player) {
       try {
+        const config = await getAxiosConfig();
         // Trimite solicitarea de ștergere către server
-        await axios.delete(`http://localhost:3000/players/${player.id}`);
+        await axios.delete(`http://localhost:3000/players/${player.id}`, config);
         
         // Apelăm mutația pentru a elimina jucătorul din starea de magazin
         commit("DELETE_PLAYER", player.id);
@@ -168,10 +173,11 @@ const store = createStore({
       try {
         commit("SET_EDITED_TEAM", team);
         console.log("echipa trimis: ",team);
+        const config = await getAxiosConfig();
         // Apelul Axios pentru actualizarea jucătorului
         await axios.put(
           `http://localhost:3000/teams/${team.id}`,
-          team
+          team, config
         );
 
         // Actualizăm doar jucătorul specific în array-ul de jucători
@@ -189,8 +195,9 @@ const store = createStore({
     },
     async deleteTeam({ commit }, team) {
       try {
+        const config = await getAxiosConfig();
         // Trimite solicitarea de ștergere către server
-        await axios.delete(`http://localhost:3000/teams/${team.id}`);
+        await axios.delete(`http://localhost:3000/teams/${team.id}`, config);
         
         // Apelăm mutația pentru a elimina echipa din starea de magazin
         commit("DELETE_TEAM", team.id);
@@ -204,8 +211,9 @@ const store = createStore({
     },
     async deletePlayerFromTeam({ commit }, player) {
       try {
+        const config = await getAxiosConfig();
         // Trimite solicitarea de ștergere a jucătorului din echipă la server
-        await axios.delete(`http://localhost:3000/activePlayers/${player.id}`);
+        await axios.delete(`http://localhost:3000/activePlayers/${player.id}`, config);
   
         // Apelăm mutația pentru a elimina jucătorul din echipa curentă în starea de magazin
         commit("DELETE_PLAYER_FROM_TEAM", player.id);

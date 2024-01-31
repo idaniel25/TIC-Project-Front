@@ -31,7 +31,7 @@
       </v-main>
     </v-container>
   </v-app>
-</template>    
+</template>     
 
 <script>
 import Auth from "./components/Auth.vue";
