@@ -161,14 +161,13 @@
       </v-col>
     </v-row>
   </v-container>
-  <v-btn @click="signOut" v-if="isSignedIn" color="primary">Sign out</v-btn>
+  
 </template>
 
 <script>
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
-  signOut,
   updateProfile,
 } from "firebase/auth";
 import { auth } from "../../firebaseConfig";
@@ -224,7 +223,7 @@ export default {
         await signInWithEmailAndPassword(auth, this.email, this.password);
         console.log("User signed in successfully with email and password!");
         // Emite evenimentul personalizat către părintele componentei
-        this.$emit("user-signed-in");
+        this.$emit("user-logged", auth.currentUser);
       } catch (error) {
         console.log(error);
         console.error(
@@ -238,16 +237,6 @@ export default {
           this.signInRules.email.push("Invalid email or password.");
           this.$refs.signInForm.validate();
         }
-      }
-    },
-    async signOut() {
-      try {
-        await signOut(auth);
-        console.log("User signed out successfully!");
-        // Emite evenimentul personalizat către părintele componentei
-        this.$emit("user-signed-out");
-      } catch (error) {
-        console.error("Error signing out:", error.message);
       }
     },
     async registerWithEmail() {
@@ -266,7 +255,9 @@ export default {
           displayName: this.registerName,
         });
         await axios.post('http://localhost:3000/generate-data', { user_id: auth.currentUser.uid });
-        this.$emit("user-registered");
+        this.$emit("user-registered", auth.currentUser);
+        this.$store.dispatch("fetchTeams", { userId: auth.currentUser.uid });
+        this.$store.dispatch("fetchPlayers", { userId: auth.currentUser.uid });
         console.log("User registered successfully with email and password!");
       } catch (error) {
         console.error(
@@ -297,12 +288,7 @@ export default {
       return nameRegex.test(registerName);
     },
   },
-  created() {
-    // Adaugă un observator pentru a verifica dacă utilizatorul este autentificat
-    auth.onAuthStateChanged((user) => {
-      this.isSignedIn = !!user;
-    });
-  },
+  
 };
 </script>
 

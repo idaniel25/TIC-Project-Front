@@ -17,27 +17,28 @@
 </template>
 
 <script>
-import axios from "axios";
 import { auth } from "../../firebaseConfig";
-
 export default {
   data() {
     return {
-        newPlayerName: "",
+      newPlayerName: "",
     };
   },
   methods: {
     async addPlayer() {
-      try {
-        await axios.post("http://localhost:3000/players", {
-          name: this.newPlayerName,
-          user_id: auth.currentUser.uid,
-        });
-        this.newPlayerName = "";
-        this.$emit("player-added"); // Emite eveniment către părinte
-      } catch (error) {
-        console.error("Eroare la adăugarea jucatorului:", error);
+      await this.$store.dispatch("fetchUser");
+
+      if (!this.$store.state.user) {
+        console.error("User not available");
+        return;
       }
+
+      await this.$store.dispatch("createPlayer", {
+        name: this.newPlayerName,
+        user_id: this.$store.state.user.uid,
+      });
+      this.$store.dispatch("fetchPlayers", { userId: auth.currentUser.uid });
+      this.newPlayerName = "";
     },
   },
 };

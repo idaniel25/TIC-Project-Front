@@ -1,38 +1,51 @@
 <template>
   <v-app>
+    <v-btn v-if="isAuthenticated" @click="signOut">Sign Out</v-btn>
+
     <v-container>
       <!-- Alte conținuturi ale tale -->
-      <Auth @user-signed-in="loadData" @user-signed-out="clearData" @user-registered="loadData"/>
-      <v-row class="add-team">
-        <v-col >
-          <TeamForm @team-added="loadData" />
-        </v-col>
-        <v-col  >
-          <PlayerForm @player-added="loadData" />
-        </v-col>
-      </v-row>
-      <v-row class="w-75 mx-auto">
-        <v-col>
-          <PlayersTable :players="players" :teams="teams" @player-updated="loadData" @player-deleted="loadData"/>
-        </v-col>
-      </v-row>
-      <TeamsList :teams="teams" @load-data="loadData"/>
+      <v-main v-if="!isAuthenticated">
+        <Auth
+          @user-registered="user - registered"
+          @user-logged="user - logged"
+        />
+      </v-main>
+      <v-main v-if="isAuthenticated">
+        <v-row class="add-team">
+          <v-col>
+            <TeamForm />
+          </v-col>
+          <v-col>
+            <PlayerForm />
+          </v-col>
+        </v-row>
+        <v-row class="w-75 mx-auto">
+          <v-col>
+            <PlayersTable
+              :players="this.$store.state.players"
+              :teams="this.$store.state.teams"
+            />
+          </v-col>
+        </v-row>
+        <TeamsList :teams="this.$store.state.teams" />
+      </v-main>
     </v-container>
   </v-app>
-</template>
+</template>    
 
 <script>
-import Auth from './components/Auth.vue';
-import TeamForm from './components/TeamForm.vue'
-import PlayerForm from './components/PlayerForm.vue'
-import PlayersTable from './components/PlayersTable.vue'
-import TeamsList from './components/TeamsList.vue'
+import Auth from "./components/Auth.vue";
+import TeamForm from "./components/TeamForm.vue";
+import PlayerForm from "./components/PlayerForm.vue";
+import PlayersTable from "./components/PlayersTable.vue";
+import TeamsList from "./components/TeamsList.vue";
+import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth } from "../firebaseConfig";
-import axios from "axios";
+// import axios from "axios";
 import "@/assets/style.css";
 
 export default {
-  name: 'App',
+  name: "App",
   components: {
     Auth,
     TeamForm,
@@ -44,43 +57,38 @@ export default {
     return {
       teams: [],
       players: [],
-    } 
+      isAuthenticated: false,
+      user: null,
+    };
+  },
+  created() {
+    onAuthStateChanged(auth, (user) => {
+      this.isAuthenticated = !!user;
+      this.user = user;
+
+      if (user) {
+      this.$store.dispatch("fetchTeams", { userId: user.uid });
+      this.$store.dispatch("fetchPlayers", { userId: user.uid });
+    }       
+    }); 
+
+
   },
   methods: {
-    async loadData() {
-      if (!auth.currentUser) {
-        console.error("Utilizatorul nu este autentificat.");
-        return;
-      }
-      try {
-        const teamsResponse = await axios.get(`http://localhost:3000/teams`, {
-          params: { user_id: auth.currentUser.uid },
-        });
-        const playersResponse = await axios.get(
-          `http://localhost:3000/players`,
-          { params: { user_id: auth.currentUser.uid } }
-        );
-
-        const teams = teamsResponse.data;
-        const players = playersResponse.data;
-
-        this.players = players.slice();
-
-        this.teams = teams.map((team) => {
-          const teamCopy = { ...team };
-          teamCopy.players = players.filter((player) => player.team_id === team.id);
-          return teamCopy;
-        });
-      } catch (error) {
-        console.error("Eroare la încărcarea datelor:", error.message);
-      }
+    signOut() {
+      signOut(auth);
+      this.isAuthenticated = false;
+      this.user = null;
+      this.showLoginForm = true;
+      this.showProjectForm = false;
     },
-    clearData() {
-      this.teams = [];
-      this.players = [];
-    },
+    onUserAuthenticated(user) {
+      // Update state and hide forms when authenticated
+      this.isAuthenticated = true;
+      this.user = user; // Adaugă această linie pentru a afișa formularul de proiect când utilizatorul este autentificat
+    }, 
   },
-}
+};
 </script>
 
 <style>
