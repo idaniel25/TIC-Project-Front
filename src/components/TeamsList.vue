@@ -3,7 +3,7 @@
     <h2 class="py-5">Teams List</h2>
     <template v-for="(page, index) in paginatedTeams" :key="index">
       <v-row v-if="page.length > 0" >
-        <v-col v-for="team in page" :key="team.id" cols="12" sm="6" md="6" lg="6" xl="4" xxl="3">
+        <v-col v-for="team in page" :key="team.id" cols="12" sm="6" md="6" lg="6" xl="4" xxl="4">
           <TeamCard :team="team"/>
         </v-col>
       </v-row>
@@ -26,7 +26,14 @@ export default {
     return {
       currentPage: 1,
       teamsPerPage: 6,
+      windowWidth: window.innerWidth,
     };
+  },
+  created() {
+    window.addEventListener('resize', this.handleResize);
+  },
+  unmounted() {
+    window.removeEventListener('resize', this.handleResize);
   },
   computed: {
     totalPages() {
@@ -35,8 +42,9 @@ export default {
     paginatedTeams() {
       const start = (this.currentPage - 1) * this.teamsPerPage;
       const end = start + this.teamsPerPage;
+      const itemsPerRow = this.windowWidth < 1441 ? 2 : 3;
       return this.teams.slice(start, end).reduce((acc, team, index) => {
-        const pageIndex = Math.floor(index / 3);
+        const pageIndex = Math.floor(index / itemsPerRow);
         if (!acc[pageIndex]) {
           acc[pageIndex] = [];
         }
@@ -48,6 +56,9 @@ export default {
   methods: {
     handleChangePage(page) {
       this.currentPage = page;
+    },
+    handleResize() {
+      this.windowWidth = window.innerWidth;
     },
   },
 };

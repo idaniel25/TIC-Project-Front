@@ -11,6 +11,7 @@
           v-model="editedTeam.name"
           label="Team name"
           bg-color="grey-lighten-2"
+          :rules="[(v) => !!v || 'Team name is required']"
         ></v-text-field>
       </template>
       <div class="py-2">
@@ -21,7 +22,8 @@
           @click="saveEditedTeam"
           icon
           class="ml-2"
-          :disabled="!isEditingTeam || editedTeam.id !== team.id"
+          :disabled="!isEditingTeam || editedTeam.id !== team.id ||
+                !editedTeam.name.trim()" 
         >
           <v-icon>mdi-content-save</v-icon>
         </v-btn>
@@ -30,9 +32,9 @@
         </v-btn>
       </div>
     </v-card-title>
-    <v-card-text class="bg-grey-lighten-1 py-4">
-      <v-list class="bg-grey-lighten-1" v-if="team.players">
-        <!-- <v-list-item-group > -->
+    <v-card-text class="bg-grey-lighten-1 py-4 scroll-bar">
+      <template v-if="team.players && team.players.length > 0">
+        <v-list class="bg-grey-lighten-1" v-if="team.players">
           <v-list-item
             v-for="player in team.players"
             :key="player.id"
@@ -55,8 +57,13 @@
               </div>
             </div>
           </v-list-item>
-        <!-- </v-list-item-group> -->
-      </v-list>
+        </v-list>
+      </template>
+      <template v-else>
+        <div class="d-flex justify-center align-center h-75 text-h5">
+          There are no players in this team.
+        </div>
+      </template>
     </v-card-text>
   </v-card>
 </template>
@@ -84,20 +91,22 @@ export default {
         this.isEditingTeam = false;
         this.editedTeam = { id: "", name: "" };
       } catch (error) {
-        console.error("Eroare la salvarea echipei:", error.message);
+        console.error("Error saving the team:", error.message);
       }
     },
     async deleteTeam(team) {
       await this.$store.dispatch("deleteTeam", team);
-      // Emiterea unui eveniment sau alte acțiuni după ștergere, dacă este cazul
-      this.$emit("team-deleted");
     },
     async deletePlayerFromTeam(player) {
       await this.$store.dispatch("deletePlayerFromTeam", player);
-
-      // Restul logicii asociate ștergerii jucătorului din echipă în componenta ta
-      this.$emit("player-deleted-from-team");
     },
   },
 };
 </script>
+
+<style scoped>
+.scroll-bar {
+  overflow-y: auto;
+  height: 200px;
+}
+</style>

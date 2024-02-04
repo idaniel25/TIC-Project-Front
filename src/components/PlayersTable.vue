@@ -13,7 +13,8 @@
         class="font-weight-bold"
       ></v-text-field>
     </template>
-    <v-data-table class="bg-grey-lighten-2"
+    <v-data-table
+      class="bg-grey-lighten-2"
       :headers="headers"
       :items="players"
       :search="search"
@@ -22,26 +23,23 @@
     >
       <template v-slot:item="{ item }">
         <tr>
-          <td class="text-left ">
-            <!-- Afișați numele jucătorului și echipa normal -->
+          <td class="text-left">
             <template v-if="!isEditingPlayer || editedPlayer.id !== item.id">
               {{ item.name }}
             </template>
-            <!-- Afișați câmpul de text pentru nume când se editează -->
             <template v-else>
               <v-text-field
                 v-model="editedPlayer.name"
                 label="Player name"
                 color="green"
+                :rules="[(v) => !!v || 'Player name is required']"
               ></v-text-field>
             </template>
           </td>
           <td class="text-left">
-            <!-- Afișați echipa normal -->
             <template v-if="!isEditingPlayer || editedPlayer.id !== item.id">
               {{ getTeamName(item.team_id) || "-" }}
             </template>
-            <!-- Afișați spinner-ul pentru echipă când se editează -->
             <template v-else>
               <v-select
                 v-model="editedPlayer.team_id"
@@ -64,14 +62,23 @@
           <td class="text-left">
             <v-btn
               @click="saveEditedPlayer()"
-              :disabled="!isEditingPlayer || editedPlayer.id !== item.id"
+              :disabled="
+                !isEditingPlayer ||
+                editedPlayer.id !== item.id ||
+                !editedPlayer.name.trim()
+              "
               icon
             >
               <v-icon>mdi-content-save</v-icon>
             </v-btn>
           </td>
           <td class="text-left">
-            <v-btn @click="deletePlayer(item)" icon color="red" class="text-black">
+            <v-btn
+              @click="deletePlayer(item)"
+              icon
+              color="red"
+              class="text-black"
+            >
               <v-icon>mdi-delete</v-icon>
             </v-btn>
           </td>
@@ -82,18 +89,21 @@
 </template>
 
 <script>
-
-
 export default {
   props: {
-    teams: Array, // Primeste echipele ca proprietate din componenta parinte
+    teams: Array,
     players: Array,
   },
   data() {
     return {
       search: "",
       headers: [
-        { align: "start", key: "name", title: "Player name" , class: "font-weight-bold"},
+        {
+          align: "start",
+          key: "name",
+          title: "Player name",
+          class: "font-weight-bold",
+        },
         { align: "start", key: "team_id", title: "Team" },
         { align: "start", title: "Edit", sortable: false },
         { align: "start", title: "Save", sortable: false },
@@ -115,24 +125,16 @@ export default {
     },
     async saveEditedPlayer() {
       try {
-        // Salvează jucătorul actualizat în Vuex
         await this.$store.dispatch("setEditedPlayer", this.editedPlayer);
 
-        // Restul logicii asociate actualizării jucătorului în componenta ta
         this.isEditingPlayer = false;
         this.editedPlayer = { id: "", name: "", team_id: "" };
-        console.log(
-          "Jucător actualizat cu succes:",
-          this.$store.state.editedPlayer
-        );
       } catch (error) {
-        console.error("Eroare la salvarea jucătorului: ", error.message);
+        console.error("Error saving the player: ", error.message);
       }
     },
     async deletePlayer(player) {
-       await this.$store.dispatch("deletePlayer", player);
-      // Emiterea unui eveniment sau alte acțiuni după ștergere, dacă este cazul
-      this.$emit("player-deleted");
+      await this.$store.dispatch("deletePlayer", player);
     },
     getTeamName(teamId) {
       const team = this.teams.find((t) => t.id === teamId);

@@ -4,15 +4,12 @@
   <v-container v-if="!isSignedIn">
     <v-row justify="center">
       <v-col cols="12" sm="10">
-        <v-card class="elevation-6 mt-10" >
+        <v-card class="elevation-6 mt-10">
           <v-window v-model="step">
             <v-window-item :value="1">
               <v-row>
                 <v-col cols="12" md="6">
-                  <v-form
-                    ref="signInForm"
-                    @submit.prevent="signInWithEmail"
-                  >
+                  <v-form ref="signInForm" @submit.prevent="signInWithEmail">
                     <v-card-text class="mt-8">
                       <h4 class="text-h4 text-green">
                         Login in to Your Account
@@ -41,21 +38,6 @@
                             required
                             :rules="signInRules.password"
                           />
-                          <v-row>
-                            <v-col cols="12" sm="7">
-                              <v-checkbox
-                                label="Remember Me"
-                                class="mt-n1"
-                                color="green"
-                              >
-                              </v-checkbox>
-                            </v-col>
-                            <v-col cols="12" sm="5">
-                              <span class="caption text-green"
-                                >Forgot password</span
-                              >
-                            </v-col>
-                          </v-row>
                           <v-btn color="green" type="submit" dark block tile
                             >Log in</v-btn
                           >
@@ -130,16 +112,6 @@
                             type="password"
                             :rules="registerRules.registerPassword"
                           />
-                          <v-row>
-                            <v-col cols="12" sm="8">
-                              <v-checkbox
-                                label="I Accept Terms and Conditions"
-                                class="mt-n1"
-                                color="green"
-                              >
-                              </v-checkbox>
-                            </v-col>
-                          </v-row>
                           <v-btn
                             color="green"
                             dark
@@ -161,7 +133,6 @@
       </v-col>
     </v-row>
   </v-container>
-  
 </template>
 
 <script>
@@ -172,6 +143,7 @@ import {
 } from "firebase/auth";
 import { auth } from "../../firebaseConfig";
 import axios from "axios";
+import getAxiosConfig from "../services/firebaseService";
 
 export default {
   data() {
@@ -217,21 +189,15 @@ export default {
   },
   methods: {
     async signInWithEmail() {
-      // Resetează regulile la începutul fiecărei încercări de login
       this.$refs.signInForm.resetValidation();
       try {
         await signInWithEmailAndPassword(auth, this.email, this.password);
-        console.log("User signed in successfully with email and password!");
-        // Emite evenimentul personalizat către părintele componentei
-        this.$emit("user-logged", auth.currentUser);
       } catch (error) {
-        console.log(error);
         console.error(
           "Error signing in with email and password:",
           error.message
         );
 
-        // Verificăm dacă eroarea este specifică lipsei de existență a utilizatorului
         if (error.code === "auth/invalid-credential") {
           this.signInRules.password.push("Invalid email or password.");
           this.signInRules.email.push("Invalid email or password.");
@@ -250,15 +216,17 @@ export default {
 
         const user = auth.currentUser;
 
-        // Actualizează profilul utilizatorului cu numele introdus
         await updateProfile(user, {
           displayName: this.registerName,
         });
-        await axios.post('http://localhost:3000/generate-data', { user_id: auth.currentUser.uid });
-        this.$emit("user-registered", auth.currentUser);
+        const config = await getAxiosConfig();
+        await axios.post(
+          "http://localhost:3000/generate-data",
+          { user_id: auth.currentUser.uid },
+          config
+        );
         this.$store.dispatch("fetchTeams", { userId: auth.currentUser.uid });
         this.$store.dispatch("fetchPlayers", { userId: auth.currentUser.uid });
-        console.log("User registered successfully with email and password!");
       } catch (error) {
         console.error(
           "Error registering with email and password:",
@@ -267,11 +235,9 @@ export default {
         );
 
         if (error.code === "auth/email-already-in-use") {
-          // Adaugă mesajul de eroare la regulile pentru adresa de email
           this.registerRules.registerEmail.push(
             "Email address is already registered."
           );
-          // Validează formularul
           this.$refs.registerForm.validate();
         }
       }
@@ -288,7 +254,6 @@ export default {
       return nameRegex.test(registerName);
     },
   },
-  
 };
 </script>
 

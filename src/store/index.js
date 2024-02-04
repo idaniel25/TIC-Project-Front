@@ -1,7 +1,7 @@
 import { createStore } from "vuex";
 import axios from "axios";
 import { auth } from "../../firebaseConfig";
-import getAxiosConfig from '../services/firebaseService';
+import getAxiosConfig from "../services/firebaseService";
 
 const store = createStore({
   state: {
@@ -18,10 +18,11 @@ const store = createStore({
     SET_TEAMS(state, teams) {
       state.teams = teams.map((team) => {
         const teamCopy = { ...team };
-        teamCopy.players = state.players.filter((player) => player.team_id === team.id);
+        teamCopy.players = state.players.filter(
+          (player) => player.team_id === team.id
+        );
         return teamCopy;
       });
-      // state.teams=teams;
     },
     ADD_TEAM(state, team) {
       state.teams.push(team);
@@ -36,34 +37,26 @@ const store = createStore({
       state.editedPlayer = player;
     },
     DELETE_PLAYER(state, playerId) {
-      // Elimină jucătorul din starea de magazin
-      state.players = state.players.filter(player => player.id !== playerId);
+      state.players = state.players.filter((player) => player.id !== playerId);
     },
     SET_EDITED_TEAM(state, team) {
       state.editedTeam = team;
     },
     DELETE_TEAM(state, teamId) {
-        // Elimină echipa din starea de magazin
-        state.teams = state.teams.filter(team => team.id !== teamId);
-      
-        // Parcurge toți jucătorii și actualizează team_id pentru cei care aparțineau echipei șterse
-        state.players.forEach(player => {
-          if (player.team_id === teamId) {
-            player.team_id = ""; // Setează team_id la string gol
-          }
-        });
-      }
-      ,
-    DELETE_PLAYER_FROM_TEAM(state, playerId) {
-      // Parcurge lista de jucători
+      state.teams = state.teams.filter((team) => team.id !== teamId);
       state.players.forEach((player) => {
-        // Verifică dacă ID-ul jucătorului corespunde cu ID-ul dat
-        if (player.id === playerId) {
-          // Setează team_id la un șir gol pentru jucătorul respectiv
-          player.team_id = '';
+        if (player.team_id === teamId) {
+          player.team_id = "";
         }
       });
-    }
+    },
+    DELETE_PLAYER_FROM_TEAM(state, playerId) {
+      state.players.forEach((player) => {
+        if (player.id === playerId) {
+          player.team_id = "";
+        }
+      });
+    },
   },
   actions: {
     async fetchUser(context) {
@@ -77,18 +70,27 @@ const store = createStore({
     async createTeam(context, { name, user_id }) {
       try {
         const config = await getAxiosConfig();
-        const response = await axios.post("http://localhost:3000/teams", {
-          name,
-          user_id,
-        }, config);
+        const response = await axios.post(
+          "http://localhost:3000/teams",
+          {
+            name,
+            user_id,
+          },
+          config
+        );
 
         const createdTeam = response.data;
-
-        console.log(createdTeam.id);
-
         context.commit("ADD_TEAM", createdTeam);
       } catch (error) {
-        console.error("Eroare la adăugarea echipei:", error);
+        if (error.response && error.response.status === 409) {
+          console.error("The team with the same name already exists:", error);
+          throw error;
+        } else if (error.response && error.response.status === 400) {
+          console.error("Team name cannot be empty:", error);
+          throw error;
+        } else {
+          console.error("Error adding the team:", error);
+        }
       }
     },
     async fetchTeams(context, { userId }) {
@@ -96,7 +98,7 @@ const store = createStore({
         const response = await axios.get(`http://localhost:3000/teams`, {
           params: { user_id: userId },
         });
-    
+
         const teams = response.data;
         context.commit("SET_TEAMS", teams);
       } catch (error) {
@@ -117,110 +119,94 @@ const store = createStore({
     async createPlayer(context, { name, user_id }) {
       try {
         const config = await getAxiosConfig();
-        const response = await axios.post("http://localhost:3000/players", {
-          name,
-          user_id,
-        }, config);
+        const response = await axios.post(
+          "http://localhost:3000/players",
+          {
+            name,
+            user_id,
+          },
+          config
+        );
         const createdPlayer = response.data;
-
-        console.log(createdPlayer.id);
-
         context.commit("ADD_PLAYER", createdPlayer);
       } catch (error) {
-        console.error("Eroare la adăugarea jucatorului:", error);
+        if (error.response && error.response.status === 400) {
+          console.error("Player name cannot be empty:", error);
+          throw error;
+        } else {
+          console.error("Error adding the player:", error);
+        }
       }
     },
     async setEditedPlayer({ commit, state }, player) {
       try {
         commit("SET_EDITED_PLAYER", player);
-        console.log("jucator trimis: ",player);
-        console.log(state.teams)
         const config = await getAxiosConfig();
-        // Apelul Axios pentru actualizarea jucătorului
         await axios.put(
           `http://localhost:3000/players/${player.id}`,
-          player, config
+          player,
+          config
         );
 
-        // Actualizăm doar jucătorul specific în array-ul de jucători
         const updatedPlayers = state.players.map((p) =>
           p.id === player.id ? state.editedPlayer : p
         );
 
         commit("SET_PLAYERS", updatedPlayers);
         commit("SET_TEAMS", state.teams);
-
-        console.log("Jucător actualizat cu succes:", state.editedPlayer);
       } catch (error) {
-        console.error("Eroare la setarea jucătorului editat:", error.message);
+        console.error("Error updating the player:", error.message);
       }
     },
     async deletePlayer({ commit }, player) {
       try {
         const config = await getAxiosConfig();
-        // Trimite solicitarea de ștergere către server
-        await axios.delete(`http://localhost:3000/players/${player.id}`, config);
-        
-        // Apelăm mutația pentru a elimina jucătorul din starea de magazin
+        await axios.delete(
+          `http://localhost:3000/players/${player.id}`,
+          config
+        );
         commit("DELETE_PLAYER", player.id);
         commit("SET_TEAMS", this.state.teams);
         console.log("Jucător șters cu succes:", player);
       } catch (error) {
-        console.error("Eroare la ștergerea jucătorului:", error.message);
+        console.error("Error deleting the player:", error.message);
       }
     },
     async setEditedTeam({ commit, state }, team) {
       try {
         commit("SET_EDITED_TEAM", team);
-        console.log("echipa trimis: ",team);
         const config = await getAxiosConfig();
-        // Apelul Axios pentru actualizarea jucătorului
-        await axios.put(
-          `http://localhost:3000/teams/${team.id}`,
-          team, config
-        );
-
-        // Actualizăm doar jucătorul specific în array-ul de jucători
+        await axios.put(`http://localhost:3000/teams/${team.id}`, team, config);
         const updatedTeams = state.teams.map((t) =>
           t.id === team.id ? state.editedTeam : t
         );
-
         commit("SET_TEAMS", updatedTeams);
-
-
-        console.log("Jucător actualizat cu succes:", state.editedTeam);
       } catch (error) {
-        console.error("Eroare la setarea jucătorului editat:", error.message);
+        console.error("Error updating the team:", error.message);
       }
     },
     async deleteTeam({ commit }, team) {
       try {
         const config = await getAxiosConfig();
-        // Trimite solicitarea de ștergere către server
         await axios.delete(`http://localhost:3000/teams/${team.id}`, config);
-        
-        // Apelăm mutația pentru a elimina echipa din starea de magazin
         commit("DELETE_TEAM", team.id);
         commit("SET_PLAYERS", this.state.players);
         commit("SET_TEAMS", this.state.teams);
-  
-        console.log("Echipa ștearsa cu succes:", team);
       } catch (error) {
-        console.error("Eroare la ștergerea jucătorului:", error.message);
+        console.error("Error deleting the team:", error.message);
       }
     },
     async deletePlayerFromTeam({ commit }, player) {
       try {
         const config = await getAxiosConfig();
-        // Trimite solicitarea de ștergere a jucătorului din echipă la server
-        await axios.delete(`http://localhost:3000/activePlayers/${player.id}`, config);
-  
-        // Apelăm mutația pentru a elimina jucătorul din echipa curentă în starea de magazin
+        await axios.delete(
+          `http://localhost:3000/activePlayers/${player.id}`,
+          config
+        );
         commit("DELETE_PLAYER_FROM_TEAM", player.id);
         commit("SET_TEAMS", this.state.teams);
-        console.log("Jucător șters cu succes din echipă:", player);
       } catch (error) {
-        console.error("Eroare la ștergerea jucătorului din echipă:", error.message);
+        console.error("Error deleting the player from team", error.message);
       }
     },
   },

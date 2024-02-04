@@ -1,21 +1,15 @@
 <template>
   <v-app class="bg-grey-lighten-1">
     <v-app-bar class="bg-green" v-if="isAuthenticated">
-      <v-toolbar-title class="text-left ml-16">{{
-        `Hello, ${user.displayName} !`
-      }}</v-toolbar-title>
+      <v-toolbar-title class="text-left ml-16">My App</v-toolbar-title>
       <v-btn icon @click="signOut">
         <v-icon>mdi-logout</v-icon>
       </v-btn>
     </v-app-bar>
 
     <v-container>
-      <!-- Alte conținuturi ale tale -->
       <v-main v-if="!isAuthenticated">
-        <Auth
-          @user-registered="user - registered"
-          @user-logged="user - logged"
-        />
+        <Auth />
       </v-main>
       <v-main v-if="isAuthenticated">
         <v-row class="mt-3">
@@ -48,7 +42,6 @@ import PlayersTable from "./components/PlayersTable.vue";
 import TeamsList from "./components/TeamsList.vue";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth } from "../firebaseConfig";
-// import axios from "axios";
 
 export default {
   name: "App",
@@ -87,9 +80,8 @@ export default {
       this.showProjectForm = false;
     },
     onUserAuthenticated(user) {
-      // Update state and hide forms when authenticated
       this.isAuthenticated = true;
-      this.user = user; // Adaugă această linie pentru a afișa formularul de proiect când utilizatorul este autentificat
+      this.user = user;
     },
   },
 };
