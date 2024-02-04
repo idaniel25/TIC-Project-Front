@@ -1,5 +1,6 @@
 <template>
-  <v-card flat title="Players List">
+  <h2 class="bg-grey-lighten-2 custom-card">Players List</h2>
+  <v-card flat class="rounded-b-xl bg-grey-lighten-2">
     <template v-slot:text>
       <v-text-field
         v-model="search"
@@ -7,10 +8,12 @@
         prepend-inner-icon="mdi-magnify"
         single-line
         variant="outlined"
+        color="green"
         hide-details
+        class="font-weight-bold"
       ></v-text-field>
     </template>
-    <v-data-table
+    <v-data-table class="bg-grey-lighten-2"
       :headers="headers"
       :items="players"
       :search="search"
@@ -19,7 +22,7 @@
     >
       <template v-slot:item="{ item }">
         <tr>
-          <td class="text-left">
+          <td class="text-left ">
             <!-- Afișați numele jucătorului și echipa normal -->
             <template v-if="!isEditingPlayer || editedPlayer.id !== item.id">
               {{ item.name }}
@@ -28,7 +31,8 @@
             <template v-else>
               <v-text-field
                 v-model="editedPlayer.name"
-                label="Nume jucător"
+                label="Player name"
+                color="green"
               ></v-text-field>
             </template>
           </td>
@@ -47,12 +51,13 @@
                     value: team.id,
                   }))
                 "
-                label="Selectează echipa"
+                label="Select the team"
+                color="green"
               ></v-select>
             </template>
           </td>
           <td class="text-left">
-            <v-btn @click="editPlayer(item)" icon>
+            <v-btn @click="editPlayer(item)" icon color="green">
               <v-icon>mdi-pencil</v-icon>
             </v-btn>
           </td>
@@ -66,7 +71,7 @@
             </v-btn>
           </td>
           <td class="text-left">
-            <v-btn @click="deletePlayer(item)" icon>
+            <v-btn @click="deletePlayer(item)" icon color="red" class="text-black">
               <v-icon>mdi-delete</v-icon>
             </v-btn>
           </td>
@@ -88,7 +93,7 @@ export default {
     return {
       search: "",
       headers: [
-        { align: "start", key: "name", title: "Player name" },
+        { align: "start", key: "name", title: "Player name" , class: "font-weight-bold"},
         { align: "start", key: "team_id", title: "Team" },
         { align: "start", title: "Edit", sortable: false },
         { align: "start", title: "Save", sortable: false },
@@ -136,3 +141,10 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.custom-card {
+  margin-bottom: -20px;
+  padding: 20px 0px;
+}
+</style>

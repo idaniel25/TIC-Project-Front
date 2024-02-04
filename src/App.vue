@@ -1,6 +1,13 @@
 <template>
-  <v-app>
-    <v-btn v-if="isAuthenticated" @click="signOut">Sign Out</v-btn>
+  <v-app class="bg-grey-lighten-1">
+    <v-app-bar class="bg-green" v-if="isAuthenticated">
+      <v-toolbar-title class="text-left ml-16">{{
+        `Hello, ${user.displayName} !`
+      }}</v-toolbar-title>
+      <v-btn icon @click="signOut">
+        <v-icon>mdi-logout</v-icon>
+      </v-btn>
+    </v-app-bar>
 
     <v-container>
       <!-- Alte conținuturi ale tale -->
@@ -11,12 +18,12 @@
         />
       </v-main>
       <v-main v-if="isAuthenticated">
-        <v-row class="add-team">
-          <v-col>
-            <TeamForm />
+        <v-row class="mt-3">
+          <v-col cols="12" sm="6" md="6" lg="6">
+            <TeamForm class="w-75 mx-auto" />
           </v-col>
-          <v-col>
-            <PlayerForm />
+          <v-col cols="12" sm="6" md="6" lg="6">
+            <PlayerForm class="w-75 mx-auto" />
           </v-col>
         </v-row>
         <v-row class="w-75 mx-auto">
@@ -31,7 +38,7 @@
       </v-main>
     </v-container>
   </v-app>
-</template>     
+</template>
 
 <script>
 import Auth from "./components/Auth.vue";
@@ -42,7 +49,6 @@ import TeamsList from "./components/TeamsList.vue";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth } from "../firebaseConfig";
 // import axios from "axios";
-import "@/assets/style.css";
 
 export default {
   name: "App",
@@ -67,12 +73,10 @@ export default {
       this.user = user;
 
       if (user) {
-      this.$store.dispatch("fetchTeams", { userId: user.uid });
-      this.$store.dispatch("fetchPlayers", { userId: user.uid });
-    }       
-    }); 
-
-
+        this.$store.dispatch("fetchPlayers", { userId: user.uid });
+        this.$store.dispatch("fetchTeams", { userId: user.uid });
+      }
+    });
   },
   methods: {
     signOut() {
@@ -86,7 +90,7 @@ export default {
       // Update state and hide forms when authenticated
       this.isAuthenticated = true;
       this.user = user; // Adaugă această linie pentru a afișa formularul de proiect când utilizatorul este autentificat
-    }, 
+    },
   },
 };
 </script>
@@ -98,6 +102,5 @@ export default {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-  margin-top: 60px;
 }
 </style>
