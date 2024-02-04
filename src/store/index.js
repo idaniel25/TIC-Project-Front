@@ -167,7 +167,6 @@ const store = createStore({
         );
         commit("DELETE_PLAYER", player.id);
         commit("SET_TEAMS", this.state.teams);
-        console.log("Jucător șters cu succes:", player);
       } catch (error) {
         console.error("Error deleting the player:", error.message);
       }

@@ -53,10 +53,3 @@ export default {
   },
 };
 </script>
-
-<!-- if (this.newPlayerName.trim() === "") {
-  this.showAlert = true;
-  return;
-} else {
-  this.showAlert = false;
-} -->
